@@ -77,3 +77,75 @@ with st.sidebar:
     st.write("Estado: Listo para Implementación")
     st.divider()
     st.caption("Este simulador es propiedad intelectual del proyecto educativo MENFA.")
+import streamlit as st
+import random
+
+# --- CONFIGURACIÓN DE PANTALLA ---
+st.set_page_config(page_title="MENFA WELL SIM V12 - EXAM MODE", layout="wide")
+
+# --- BANCO DE PREGUNTAS (Basado en tus clases) ---
+def generar_trivia():
+    preguntas = [
+        {
+            "id": 1,
+            "q": "¿Qué sucede con el Martin-Decker (Hook Load) cuando apoyas peso (WOB) en el fondo?",
+            "options": ["Aumenta la carga", "Disminuye la carga", "Se mantiene igual"],
+            "correct": "Disminuye la carga",
+            "ref": "Clase 3: El peso se transfiere de la sarta al trépano."
+        },
+        {
+            "id": 2,
+            "q": "Si el volumen en los tanques (Pit Level) aumenta sin bombear, ¿qué indica?",
+            "options": ["Pérdida de circulación", "Un Kick o Surgencia", "Falla en las zarandas"],
+            "correct": "Un Kick o Surgencia",
+            "ref": "Clase 4: Entrada de fluidos de formación al pozo."
+        },
+        {
+            "id": 3,
+            "q": "Para calcular el volumen de cemento, ¿qué diámetro es el más crítico?",
+            "options": ["Diámetro Interno (ID) del Casing", "Espacio Anular (Hoyo vs OD Casing)", "Diámetro del Drill Pipe"],
+            "correct": "Espacio Anular (Hoyo vs OD Casing)",
+            "ref": "Clase 5: El cemento debe llenar el espacio tras el Casing."
+        }
+    ]
+    return preguntas
+
+# --- INTERFAZ DEL EXAMEN ---
+st.title("🎓 EVALUACIÓN DE COMPETENCIAS TÉCNICAS")
+
+if "score" not in st.session_state:
+    st.session_state.score = 0
+    st.session_state.answered = []
+
+tab_sim, tab_exam = st.tabs(["🕹️ SIMULADOR ACTIVO", "📝 EXAMEN FINAL"])
+
+with tab_sim:
+    st.info("Continúa operando para recolectar datos...")
+    st.metric("Profundidad Actual", f"{st.session_state.get('md', 3500)} m")
+    st.warning("Recuerda: El reporte IADC es la base de tu evaluación.")
+
+with tab_exam:
+    st.subheader("Cuestionario de Certificación MENFA")
+    
+    preguntas = generar_trivia()
+    
+    for p in preguntas:
+        st.write(f"**{p['id']}. {p['q']}**")
+        ans = st.radio(f"Seleccione una opción para la preg. {p['id']}:", p['options'], key=f"q_{p['id']}")
+        
+        if st.button(f"Validar Respuesta {p['id']}"):
+            if ans == p['correct']:
+                st.success(f"¡Correcto! {p['ref']}")
+                if p['id'] not in st.session_state.answered:
+                    st.session_state.score += 1
+                    st.session_state.answered.append(p['id'])
+            else:
+                st.error("Incorrecto. Revisa el material de la clase.")
+
+    st.divider()
+    st.metric("Puntaje Total", f"{st.session_state.score} / {len(preguntas)}")
+    
+    if st.session_state.score == len(preguntas):
+        st.balloons()
+        st.success("🎉 ¡Certificación MENFA Aprobada! Estás listo para el Rig Floor.")
+        
